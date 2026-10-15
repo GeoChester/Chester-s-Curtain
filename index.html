@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chester's Gift</title>
+<title>The Cheshire Curtain</title>
 <style>
   html, body {
     margin: 0; height: 100%;
@@ -47,7 +47,26 @@
     opacity: 0; transition: opacity 1.6s ease; pointer-events: none;
   }
   #coords div:nth-child(2) { color: #c79bff; text-shadow: 0 0 10px #b967ff, 0 0 28px #7a2cff; }
+  #cK svg { display: block; height: clamp(46px, min(15vw, 10.5vh), 104px); width: auto; filter: drop-shadow(0 0 8px rgba(255,200,90,.85)); }
+  @media (orientation: portrait) { #cK { flex-basis: 100%; display: flex; justify-content: center; margin-top: .5em; } }
   #coords.show { opacity: 1; }
+
+  /* The cat's speech bubble, placed by layout() in the picture's top-right, clear of the moon. */
+  #bubble {
+    position: fixed; z-index: 150; box-sizing: border-box; pointer-events: none;
+    padding: .5em .7em .55em; border-radius: 1em;
+    background: #fff9ec; color: #2a1c3a; text-align: center; text-wrap: balance;
+    font: italic bold 16px/1.2 Georgia, "Times New Roman", serif;
+    box-shadow: 0 4px 16px rgba(0,0,0,.55), 0 0 22px rgba(255,235,170,.35);
+    opacity: 0; transform: scale(.85) translateY(6px); transform-origin: 10% 100%;
+    transition: opacity .7s ease, transform .7s cubic-bezier(.2,1.4,.4,1);
+  }
+  #bubble::after {
+    content: ""; position: absolute; left: 9%; bottom: -.85em; width: 1.2em; height: .9em;
+    background: #fff9ec; clip-path: polygon(0 0, 100% 0, 0 100%);
+  }
+  #bubble.show { opacity: 1; transform: none; }
+
 
   #hint {
     position: fixed; left: 0; right: 0; bottom: 5vh; text-align: center;
@@ -67,7 +86,11 @@
 <div id="coords">
   <div id="cN"></div>
   <div id="cW"></div>
+  <div id="cK"><svg viewBox="0 0 64 80" role="img" aria-label="A padlock showing a three-digit code"><path d="M16 36V24a16 16 0 0 1 32 0v12" fill="none" stroke="#ffd36b" stroke-width="5" stroke-linecap="round"/><rect x="6" y="34" width="52" height="42" rx="7" fill="#2a1c06" stroke="#ffd36b" stroke-width="3"/><text id="cL" x="32" y="63" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="22" letter-spacing="1" fill="#ffe9a8"></text></svg></div>
 </div>
+
+<div id="bubble" aria-live="polite"></div>
+
 
 <div id="hint">Move your light across the dark&hellip;</div>
 
@@ -83,6 +106,7 @@ const stage = document.getElementById("stage");
 const guide = document.getElementById("guide");
 const finalImg = document.getElementById("final");
 const coords = document.getElementById("coords");
+const bubble = document.getElementById("bubble");
 const hint = document.getElementById("hint");
 const hitCtx = document.createElement("canvas").getContext("2d");
 
@@ -203,6 +227,8 @@ function layout(first) {
   finalImg.style.left = bx + "px"; finalImg.style.top = by + "px";
   finalImg.style.width = S + "px"; finalImg.style.height = S + "px";
   coords.style.top = (by + S + Math.max(10, H * 0.025)) + "px";
+  bubble.style.left = Math.round(bx + S * 0.58) + "px"; bubble.style.top = Math.round(by + S * 0.04) + "px";
+  bubble.style.width = Math.round(S * 0.38) + "px"; bubble.style.fontSize = Math.max(12, S * 0.047).toFixed(1) + "px";
 
   pieces.forEach(p => {
     drawPiece(p);
@@ -277,12 +303,14 @@ function fnv(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);
 function stream(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)&255;};}
 function unlock(b64,phrase){const raw=atob(b64);const next=stream(fnv(phrase));const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i)^next();return new TextDecoder().decode(out);}
 //CODEC-END
-const PAYLOAD = 'odA18rRilYiyKN8JhZ+37Pr4cmrxtU8JwS/xvg6RvmBc7Q==', PHRASE = 'cheshirecurtain|1';
+const PAYLOAD = 'odA18rRilYiyKN8JhZ+37Pr4cmrxtU8JwS/xvg6RvmBc7YgveIp3qW1cTVxWzX2zflUxskFPDlRMMyCxPTLK', PHRASE = 'cheshirecurtain|1';
 function fillCoords() {
   let t = ''; try { t = unlock(PAYLOAD, PHRASE); } catch (e) { t = ''; }
   const p = t.split('\n');
   document.getElementById("cN").textContent = p[0] || '';
   document.getElementById("cW").textContent = p[1] || '';
+  document.getElementById("cL").textContent = p[2] || '';
+  bubble.textContent = p[3] || '';
 }
 
 function complete() {
@@ -291,6 +319,7 @@ function complete() {
   targetR = Math.hypot(W, H) * 2.2;               // the curtain lifts: the light grows to cover everything
   setTimeout(() => { finalImg.style.opacity = 1; }, 500);   // the seamless picture fades in over the pieces
   setTimeout(() => { coords.classList.add("show"); }, 1100);
+  setTimeout(() => { bubble.classList.add("show"); }, 1900);
 }
 
 window.addEventListener("pointermove", e => { setLight(e); moveDrag(e); });
