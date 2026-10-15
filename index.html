@@ -64,10 +64,9 @@
   <img id="final" alt="">
 </div>
 
-<!-- EDIT THE COORDINATES HERE -->
 <div id="coords">
-  <div>N 38° 52.805′</div>
-  <div>W 77° 05.147′</div>
+  <div id="cN"></div>
+  <div id="cW"></div>
 </div>
 
 <div id="hint">Move your light across the dark&hellip;</div>
@@ -273,8 +272,22 @@ function endDrag() {
   }
 }
 
+//CODEC-START
+function fnv(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);h=Math.imul(h,16777619)>>>0;}return h>>>0;}
+function stream(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)&255;};}
+function unlock(b64,phrase){const raw=atob(b64);const next=stream(fnv(phrase));const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i)^next();return new TextDecoder().decode(out);}
+//CODEC-END
+const PAYLOAD = 'odA18rRilYiyKN8JhZ+37Pr4cmrxtU8JwS/xvg6RvmBc7Q==', PHRASE = 'cheshirecurtain|1';
+function fillCoords() {
+  let t = ''; try { t = unlock(PAYLOAD, PHRASE); } catch (e) { t = ''; }
+  const p = t.split('\n');
+  document.getElementById("cN").textContent = p[0] || '';
+  document.getElementById("cW").textContent = p[1] || '';
+}
+
 function complete() {
   done = true;
+  fillCoords();
   targetR = Math.hypot(W, H) * 2.2;               // the curtain lifts: the light grows to cover everything
   setTimeout(() => { finalImg.style.opacity = 1; }, 500);   // the seamless picture fades in over the pieces
   setTimeout(() => { coords.classList.add("show"); }, 1100);
