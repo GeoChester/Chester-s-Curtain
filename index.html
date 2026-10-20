@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Chester's Gift</title>
+<title>The Cheshire Curtain</title>
 <style>
   html, body {
     margin: 0; height: 100%;
@@ -86,7 +86,7 @@
 <div id="coords">
   <div id="cN"></div>
   <div id="cW"></div>
-  <div id="cK"><svg viewBox="0 0 64 80" role="img" aria-label="A padlock showing a three-digit code"><path d="M16 36V24a16 16 0 0 1 32 0v12" fill="none" stroke="#ffd36b" stroke-width="5" stroke-linecap="round"/><rect x="6" y="34" width="52" height="42" rx="7" fill="#2a1c06" stroke="#ffd36b" stroke-width="3"/><text id="cL" x="32" y="63" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="22" letter-spacing="1" fill="#ffe9a8"></text></svg></div>
+  <div id="cK"><svg viewBox="0 0 64 80" role="img" aria-label="A padlock showing a four-digit code"><path d="M16 36V24a16 16 0 0 1 32 0v12" fill="none" stroke="#ffd36b" stroke-width="5" stroke-linecap="round"/><rect x="6" y="34" width="52" height="42" rx="7" fill="#2a1c06" stroke="#ffd36b" stroke-width="3"/><text id="cL" x="32" y="62" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-weight="bold" font-size="18" letter-spacing="0" textLength="42" lengthAdjust="spacingAndGlyphs" fill="#ffe9a8"></text></svg></div>
 </div>
 
 <div id="bubble" aria-live="polite"></div>
@@ -303,7 +303,7 @@ function fnv(s){let h=2166136261;for(let i=0;i<s.length;i++){h^=s.charCodeAt(i);
 function stream(seed){let a=seed>>>0;return function(){a=(a+0x6D2B79F5)>>>0;let t=a;t=Math.imul(t^(t>>>15),t|1);t^=t+Math.imul(t^(t>>>7),t|61);return((t^(t>>>14))>>>0)&255;};}
 function unlock(b64,phrase){const raw=atob(b64);const next=stream(fnv(phrase));const out=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)out[i]=raw.charCodeAt(i)^next();return new TextDecoder().decode(out);}
 //CODEC-END
-const PAYLOAD = 'odA18rRilYiyKN8JhZ+37Pr4cmrxtU8JwS/xvg6RvmBc7YgveIp3qW1cTVxWzX2zflUxskFPDlRMMyCxPTLK', PHRASE = 'cheshirecurtain|1';
+const PAYLOAD = 'odA18rRilYiyKN8JhZ+37Pr4cmrxtU8JwS/xvg6RvmBc7YgveIpN6lAPGQ8XwH3/N1J/5l1CRVRMbz2xJjWYjQ==', PHRASE = 'cheshirecurtain|1';
 function fillCoords() {
   let t = ''; try { t = unlock(PAYLOAD, PHRASE); } catch (e) { t = ''; }
   const p = t.split('\n');
