@@ -39,7 +39,7 @@
   /* The coordinates, shown only once the picture is complete. */
   #coords {
     position: fixed; left: 0; right: 0; z-index: 200;
-    display: flex; flex-wrap: wrap; justify-content: center; gap: 0 1.4em;
+    display: flex; flex-direction: column; align-items: center; gap: .05em;
     text-align: center;
     font: bold clamp(18px, min(5vw, 5vh), 44px) Georgia, "Times New Roman", serif;
     letter-spacing: .04em;
@@ -47,9 +47,10 @@
     opacity: 0; transition: opacity 1.6s ease; pointer-events: none;
   }
   #coords div:nth-child(2) { color: #c79bff; text-shadow: 0 0 10px #b967ff, 0 0 28px #7a2cff; }
-  #cK svg { display: block; height: clamp(46px, min(15vw, 10.5vh), 104px); width: auto; filter: drop-shadow(0 0 8px rgba(255,200,90,.85)); }
-  @media (orientation: portrait) { #cK { flex-basis: 100%; display: flex; justify-content: center; margin-top: .5em; } }
+  #cK svg { display: block; height: 2.5em; width: auto; filter: drop-shadow(0 0 8px rgba(255,200,90,.85)); }
+  #cK { display: flex; justify-content: center; margin-top: .4em; }
   #coords.show { opacity: 1; }
+  html.solved, html.solved body { touch-action: auto; overflow: auto; }
 
   /* The cat's speech bubble, placed by layout() in the picture's top-right, clear of the moon. */
   #bubble {
@@ -226,7 +227,7 @@ function layout(first) {
   drawGuide();
   finalImg.style.left = bx + "px"; finalImg.style.top = by + "px";
   finalImg.style.width = S + "px"; finalImg.style.height = S + "px";
-  coords.style.top = (by + S + Math.max(10, H * 0.025)) + "px";
+  fitCoords();
   bubble.style.left = Math.round(bx + S * 0.58) + "px"; bubble.style.top = Math.round(by + S * 0.04) + "px";
   bubble.style.width = Math.round(S * 0.38) + "px"; bubble.style.fontSize = Math.max(12, S * 0.047).toFixed(1) + "px";
 
@@ -237,6 +238,28 @@ function layout(first) {
   });
   if (first) scatter();
   pieces.forEach(place);
+}
+
+// ---------- coordinates + lock: always fully on screen ----------
+// Under the picture when there is room; beside it when the window is wide and short;
+// and if it still would not fit, the text and lock shrink together until they do.
+function fitCoords() {
+  const gap = Math.max(10, H * 0.025), side = (W - S) / 2;
+  const base = Math.max(18, Math.min(44, Math.min(W, H) * 0.05));
+  const under = () => { coords.style.left = "0"; coords.style.right = "0"; coords.style.width = "";
+                        coords.style.top = (by + S + gap) + "px"; coords.style.bottom = ""; coords.style.transform = ""; };
+  const beside = () => { coords.style.left = (bx + S + gap) + "px"; coords.style.right = "auto";
+                         coords.style.width = Math.max(0, W - (bx + S) - 2 * gap) + "px";
+                         coords.style.top = (by + S / 2) + "px"; coords.style.bottom = ""; coords.style.transform = "translateY(-50%)"; };
+  const fits = () => { const b = coords.getBoundingClientRect(); return b.top >= 4 && b.bottom <= H - 4 && b.left >= 0 && b.right <= W; };
+  const modes = (W > H && side >= 170) ? [beside, under] : [under, beside];
+  for (const mode of modes) {
+    if (mode === beside && side < 120) continue;
+    mode();
+    for (let s = 1; s >= 0.5; s -= 0.05) { coords.style.fontSize = (base * s).toFixed(1) + "px"; if (fits()) return; }
+  }
+  // last resort: pin it to the bottom edge of the window, over the picture if need be
+  under(); coords.style.top = "auto"; coords.style.bottom = "8px"; coords.style.fontSize = (base * 0.5).toFixed(1) + "px";
 }
 
 // ---------- the light ----------
@@ -315,7 +338,10 @@ function fillCoords() {
 
 function complete() {
   done = true;
+  document.documentElement.classList.add("solved");
+  hint.classList.add("gone");
   fillCoords();
+  fitCoords();
   targetR = Math.hypot(W, H) * 2.2;               // the curtain lifts: the light grows to cover everything
   setTimeout(() => { finalImg.style.opacity = 1; }, 500);   // the seamless picture fades in over the pieces
   setTimeout(() => { coords.classList.add("show"); }, 1100);
@@ -329,6 +355,7 @@ window.addEventListener("pointercancel", () => { endDrag(); hideLight(); });
 document.addEventListener("mouseleave", hideLight);
 window.addEventListener("blur", () => { endDrag(); hideLight(); });
 window.addEventListener("resize", () => layout(false));
+if (window.visualViewport) window.visualViewport.addEventListener("resize", () => { if (done) fitCoords(); });
 
 img.onload = () => {
   finalImg.src = IMG_SRC;
